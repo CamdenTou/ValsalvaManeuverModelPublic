@@ -1,0 +1,27 @@
+# Directories
+**/WS
+**/Summaries
+**/Sensitivities
+**/Optimized
+**/Markers
+**/LabChart
+**/Figures
+**/Remnants
+
+# Remove MACOS file
+*.DS_Store
+
+# Files in Main directory 
+Plotmarkers.mat
+
+# Files in Core directory
+*.asv
+*.out
+*.txt
+*.log
+*.hex
+*driver
+
+
+
+
