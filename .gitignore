@@ -1,11 +1,11 @@
 # Directories
-**/WS
-**/Summaries
-**/Sensitivities
-**/Optimized
-**/Markers
-**/LabChart
-**/Figures
+WS/*
+Summaries/*
+Sensitivities/*
+Optimized/*
+Markers/*
+LabChart/*
+Figures/*
 **/Remnants
 
 # Remove MACOS file
