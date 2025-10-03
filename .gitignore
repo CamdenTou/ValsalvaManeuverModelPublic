@@ -22,6 +22,8 @@ Plotmarkers.mat
 *.hex
 *driver
 
+# Keep an empty text file in each folder so it uploads to GitHub
+!tokeepfolder.txt
 
 
 
