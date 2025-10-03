@@ -1,2 +1,2 @@
 # UQ4Life_Valsava_Analyzer
-# Hi
+# A robust clinical software to extract accurate biomarkers from patients undergoing the Valsalva maneuver. 
