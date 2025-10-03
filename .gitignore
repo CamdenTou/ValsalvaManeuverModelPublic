@@ -5,7 +5,8 @@ Sensitivities/*
 Optimized/*
 Markers/*
 LabChart/*
-Figures/*
+Figures/Data/*
+Figures/Model_fits/*
 **/Remnants
 
 # Remove MACOS file
