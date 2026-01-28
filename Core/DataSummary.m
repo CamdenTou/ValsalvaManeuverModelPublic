@@ -44,33 +44,39 @@ for i = 1:length(list)
     Info_csv(i,5)    = Weight;
 
     % make different info table for csv (only num) (T_xl, T_csv)
-    
     T_ClinicalRatios(i,:) = readtable(strcat('Markers/',patient,'_markers.xlsx'));
     
-    load(strcat('Optimized/',patient,'_opt.mat'),'optpars')
-    optpars = exp(optpars);
-    ModelParameters(i,1)  = optpars(19);  %xi_w  patient specific
-    ModelParameters(i,2)  = optpars(20);  %xi_p  patient specific
-    ModelParameters(i,3)  = optpars(21);  %xi_r  patient specific
-    ModelParameters(i,4)  = optpars(22);  %xi_s  patient specific
-    ModelParameters(i,5)  = optpars(23);  %H_I   patient specific
-    ModelParameters(i,6)  = optpars(24);  %H_p   estimated
-    ModelParameters(i,7)  = optpars(25);  %H_r   estimated
-    ModelParameters(i,8)  = optpars(26);  %H_s   estimated
-    ModelParameters(i,9)  = optpars(27);  %H_Ia  patient specific
-    ModelParameters(i,10) = optpars(28);  %tchar estimated
+    % optres = strcat('Optimized/',patient,'_opt.mat');
+    % if isfile(optres) == 1
+    %     load(s,'optpars');
+    % 
+    %     ModelParameters(i,1)  = optpars(19);  %xi_w  patient specific
+    %     ModelParameters(i,2)  = optpars(20);  %xi_p  patient specific
+    %     ModelParameters(i,3)  = optpars(21);  %xi_r  patient specific
+    %     ModelParameters(i,4)  = optpars(22);  %xi_s  patient specific
+    %     ModelParameters(i,5)  = optpars(23);  %H_I   patient specific
+    %     ModelParameters(i,6)  = optpars(24);  %H_p   estimated
+    %     ModelParameters(i,7)  = optpars(25);  %H_r   estimated
+    %     ModelParameters(i,8)  = optpars(26);  %H_s   estimated
+    %     ModelParameters(i,9)  = optpars(27);  %H_Ia  patient specific
+    %     ModelParameters(i,10) = optpars(28);  %tchar estimated
+    % end
 end
 
 % T_Info_csv might be redundant bc it has headers which are ultimately
-%    ignored but keeping for now so that T_csv works
+% ignored but keeping for now so that T_csv works
 T_ClinicalRatios = removevars(T_ClinicalRatios,{'Var1'});
-T_Info_xl = array2table(Info_xl, 'VariableNames', {'Patient', 'Age', 'Sex','Height','Weight'});
+T_Info_xl  = array2table(Info_xl,  'VariableNames', {'Patient', 'Age', 'Sex','Height','Weight'});
 T_Info_csv = array2table(Info_csv, 'VariableNames', {'Patient', 'Age', 'Sex','Height','Weight'});
-T_ModelParameters = array2table(ModelParameters, 'VariableNames', ...
-    {'xi_w', 'xi_p','xi_r','xi_s','H_I','H_p','H_r','H_s','HIa','tchar'});
-T_xl = [T_Info_xl, T_ClinicalRatios, T_ModelParameters];
-T_csv = [T_Info_csv, T_ClinicalRatios, T_ModelParameters];
-
+% if isfile(optres) == 1
+%     T_ModelParameters = array2table(ModelParameters, 'VariableNames', ...
+%         {'xi_w', 'xi_p','xi_r','xi_s','H_I','H_p','H_r','H_s','HIa','tchar'});
+%     T_xl  = [T_Info_xl,  T_ClinicalRatios, T_ModelParameters];
+%     T_csv = [T_Info_csv, T_ClinicalRatios, T_ModelParameters];
+% else
+T_xl  = [T_Info_xl,  T_ClinicalRatios];
+T_csv = [T_Info_csv, T_ClinicalRatios];
+%end     
 % Input window code
 prompt = {'Enter data summary file name (ex: FileName)'};
 dlgtitle = 'Save Data';
@@ -79,7 +85,7 @@ definput = {'FileName','hsv'};
 answer = inputdlg(prompt,dlgtitle,dims,definput);
 
 % Titles for excel and csv files
-xl_answer = append(answer{1},'.xlsx');
+xl_answer  = append(answer{1},'.xlsx');
 csv_answer = append(answer{1},'.csv');
 
 if isempty(answer) == 1

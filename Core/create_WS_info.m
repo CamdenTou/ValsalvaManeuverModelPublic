@@ -160,7 +160,6 @@ if PTh ~= 0
     Pthraw = Pthraw(istart:iend);
 end
 
-
 figure(1); hold on
 sgtitle(patient,'Fontsize',fs+2,'FontWeight','bold','Interpreter','none');
 subplot(3,1,1); hold on

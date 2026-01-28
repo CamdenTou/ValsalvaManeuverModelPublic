@@ -27,7 +27,7 @@ DIFF_INC = sqrt(ODE_TOL);
 %    HIa; tchar];                                % HR mean after VM 27          
 
 % Parameters estimated
-INDMAP = [2 11 12 13 21 22 23 24 25 ]; 
+INDMAP = [1 8 12 13 22 23];
 % Randomized initial parameters
 %rng('Shuffle');
 %rt = -1+2*rand(length(INDMAP),8);

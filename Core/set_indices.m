@@ -42,6 +42,7 @@ dt = mean(diff(Tdata));
 % and end times
 i_ts  = find(Tdata>val_start,1);
 i_t2l = find(Tdata>val_end,1);
+i_t1_ini = i_ts + (i_t2l-i_ts)/2;
 
 % Set rest before (r1) and after (r2)
 i_r1 = 1;
@@ -49,14 +50,20 @@ i_r2 = length(Tdata);
 
 % Find steady-state baseline values up to VM start
 baselineOffsetSeconds = 2;
-i_baselineOffset = baselineOffsetSeconds * 10;
+i_baselineOffset = baselineOffsetSeconds * round(1/dt);
 SPbar = trapz(SPdata(1:i_ts - i_baselineOffset - 1))/(i_ts - i_baselineOffset - 1); % sp
 DPbar = trapz(DPdata(1:i_ts - i_baselineOffset - 1))/(i_ts - i_baselineOffset - 1); % dp
 
 % Find time for end of phase I
 % Max blood pressure before start of late phase II
-[~,k_SPmax1] = max(SPdata(i_ts:i_t2l));
+[~,k_SPmax1] = max(SPdata(i_ts:i_t1_ini));
 i_t1 = i_ts + k_SPmax1 - 1;
+
+SPsmooth = sgolayfilt(SPdata,3,7);
+SP1st = gradient(SPsmooth,dt);
+
+t1Offset = round(2/dt);
+i_t1linear = findchangepts(SP1st(i_t1:i_t1+t1Offset),'Statistic','mean') + i_t1;
 
 % Find time for end early phase II
 % Select the point that which the SBP reaches a minimum during phase II
@@ -64,20 +71,42 @@ i_t1 = i_ts + k_SPmax1 - 1;
 if isempty(k_t2e)
     k_t2e = round((i_ts-i_t1)/2);
 end
-i_t2e = i_t1 + k_t2e - 1;
+i_t2emin = i_t1 + k_t2e - 1; % minimum phase 2 early
+if i_t1linear >= i_t2emin  % CAMDEN ISSUE
+    i_t1linear = i_t1;
+end
+if i_t2emin > i_t1linear
+    t2echangePoint = findchangepts(SPdata(i_t1linear:i_t2emin),'Statistic','linear') + i_t1linear;
+    i_t2elinear    = t2echangePoint;
+else
+    i_t2elinear    = i_t2emin;  % CAMNDEN - ISSUE
+end
+normalT2eThreshold = 1.10; % Threshold to check "normal" phase 2
+% if normal use minimum point for phase II early
+if SPdata(i_t2l-1) > normalT2eThreshold*SPdata(i_t2emin)
+    i_t2e = i_t2emin; 
+else
+    i_t2e = i_t2elinear;
+end
 
 % Find end of phase III/start of phase II (min 5 seconds after end of BH
 [~,k_t3] = min(SPdata(i_t2l:min(i_t2l+round(5/dt),length(SPdata))));
 if isempty(k_t3)
-    k_t3 = i_t2e;
+    i_t3 = i_t2e;
 else
     i_t3   = i_t2l + k_t3 - 1;
+end
+
+i_t3linear = findchangepts(SP1st(i_t3:i_t3+round(2/dt)),'Statistic','mean') + i_t3;
+
+if SPdata(i_t3 + round(1/dt)) > 1.1*SPdata(i_t3)
+    i_t3linear = i_t3;
 end
  
 % Check if the pressure at the end of phase III is greater than the mean
 N = length(SPdata);
 if SPdata(i_t3) > SPbar
-    k_PRT = find(SPdata(i_t3+1:i_t3+round(5/dt)) <= SPdata(i_t2l),1,'first');
+    k_PRT = find(SPdata(i_t3+1:i_t3+round(5/dt)) > SPdata(i_t2l),1,'first');
 else
     k_PRT = find(SPdata(i_t3+1:end) > SPbar,1,'first');
 end
@@ -131,6 +160,10 @@ if T4D < MinP4
         end
     end
 end
+
+t4change = findchangepts(SP1st(i_t3+round(1/dt):i_t3+round(5.5/dt)),'Statistic','mean');
+t4change = t4change + i_t3+round(1/dt);
+i_t4linear = t4change;
 
 %% Plot results
 xt(1) = mean(Tdata(i_ts:i_t1));
@@ -464,7 +497,7 @@ while strcmp(answer,'No ')==1
                 i_t3 = i_t3c;
                 N = length(SPdata);
                 if SPdata(i_t3) > SPbar
-                   k_PRT = find(SPdata(i_t3+1:i_t3+round(5/dt)) <= SPdata(i_t2l),1,'first');
+                   k_PRT = find(SPdata(i_t3+1:i_t3+round(5/dt)) > SPdata(i_t2l),1,'first');
                 else
                    k_PRT = find(SPdata(i_t3+1:end) > SPbar,1,'first');
                 end
@@ -667,6 +700,6 @@ while strcmp(answer,'No ')==1
 end
 
 %% Output
-phases = [i_ts; i_t1; i_t2e; i_t2l; i_t3; i_PRT; i_t4];
+phases = [i_ts; i_t1linear; i_t1; i_t2elinear; i_t2emin; i_t2e; i_t2l; i_t3; i_t3linear; i_PRT; i_t4; i_t4linear];
 
 end % function set_indices.m %

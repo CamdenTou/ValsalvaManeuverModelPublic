@@ -1,4 +1,4 @@
-function create_WS_indices(patient,plotmarkers)
+function create_WS_indices(patient,plotmarkers,patids)
 % function create_WS_indices
 % Input: patient name and figure settings
 % Output: augmented data strucure and temporary workspace (saved in WS)
@@ -9,17 +9,26 @@ function create_WS_indices(patient,plotmarkers)
 % global Height Sex Weight SPinds DPraw DPinds dt ECGraw ...
 %       Hraw HRdata PPraw Praw Rdata RRdata SPraw Traw 
 
-load(strcat('../WS/',patient,'_WS_temp.mat'));
+if nargin == 3
+    load(strcat('../WS/',patids,patient,'_WS_temp.mat'));
+else
+    load(strcat('../WS/',patient,'_WS_temp.mat'));
+end
 
 PatientID   = pat_char.PatientID;
 Sex         = pat_char.sex;
 Height      = pat_char.height;
 Weight      = pat_char.weight;
 
-Traw        = raw_data.Traw;
+Traw        = raw_data.Traw-raw_data.Traw(1);
 ECGraw      = raw_data.ECGraw;
 Praw        = raw_data.Praw;
-dt          = raw_data.dt;
+if isfield(raw_data,'dt')
+    dt      = raw_data.dt;
+else
+    dt      = data.dt;
+end
+
 PthAvail    = raw_data.PthAvail;
 if PthAvail ~= 0
     Pthraw  = raw_data.Pthraw;
@@ -34,7 +43,7 @@ DPinds      = data.SPinds;
 
 SPraw       = data.SPraw;
 DPraw       = data.DPraw;
-PPraw       = data.PPraw;
+PPraw       = SPraw - DPraw;
 
 %% Figure properties
 fs = plotmarkers.fs;
@@ -109,6 +118,7 @@ else
     val_start = Traw(ID1);
     val_end   = Traw(ID2);
     
+    disp('Pth available')
     i_ts_raw = ID1; 
     i_te_raw = ID2;
 end
@@ -125,7 +135,7 @@ timeAvailableS = Traw(i_ts_raw) - Traw(1);   % Breath hold start
 timeAvailableE = Traw(end) - Traw(i_te_raw); % Breath hold end
 
 % Rest time before and after (25 secs)
-restTimeS = 25;
+restTimeS = 25; 
 restTimeE = 25;
  
 % Test if the rest time asked for exceeds available time
@@ -189,15 +199,22 @@ end
 set_ind.PthAvail = PthAvail;
 
 % Set Indices should not be subsampled(cut Pth above)
-[phases] = set_indices(set_ind, patient, plotmarkers);
-i_ts  = phases(1); % breath hold start 
-i_t1  = phases(2); % end of phase I
-i_t2e = phases(3); % end of early phase II
-i_t2l = phases(4); % end of late phase II
-i_t3  = phases(5); % end of phase III
-i_PRT = phases(6); % end of pressure recovery time 
-i_t4  = phases(7); % end of phase IV
-
+[phases]   = set_indices(set_ind, patient, plotmarkers);
+i_ts       = phases(1); % breath hold start
+i_t1linear = phases(2);
+i_t1       = phases(3); % end of phase I
+i_t2elinear= phases(4); % end of early phase II
+i_t2emin   = phases(5); % minimum point of phase II
+i_t2e      = phases(6);
+i_t2l      = phases(7); % end of late phase II
+i_t3       = phases(8); % end of phase III
+i_t3linear = phases(9);
+i_PRT      = phases(10); % end of pressure recovery time 
+i_t4       = phases(11); % end of phase IV
+i_t4linear = phases(12);
+if i_t4linear > length(Tdata)
+    disp('i_t4linear too large');
+end
 % Baseline Values
 i_ts2 = round(i_ts/2);
 SPbar = trapz(SPdata(1:i_ts - 1))/(i_ts - 1);
@@ -296,13 +313,18 @@ data.RRdata     = RRdata;
 data.val_start  = val_start;
 data.val_end    = val_end;
 
-data.i_ts       = phases(1); % breath hold start
-data.i_t1       = phases(2); % end of phase I
-data.i_t2e      = phases(3); % end of early phase II
-data.i_t2l      = phases(4); % end of late phase II
-data.i_t3       = phases(5); % end of phase III
-data.i_PRT      = phases(6); % end of pressure recovery time 
-data.i_t4       = phases(7); % end of phase IV
+data.i_ts        = i_ts;
+data.i_t1linear  = i_t1linear;
+data.i_t1        = i_t1;
+data.i_t2elinear = i_t2elinear;
+data.i_t2emin    = i_t2emin;
+data.i_t2e       = i_t2e;
+data.i_t2l       = i_t2l;
+data.i_t3        = i_t3;
+data.i_t3linear  = i_t3linear;
+data.i_PRT       = i_PRT;
+data.i_t4        = i_t4;
+data.i_t4linear  = i_t4linear;
 
 data.HminR      = HminR;
 data.HmaxR      = HmaxR;
@@ -421,7 +443,11 @@ subplot(3,1,3); hold on;
   uiwait(f)
 
 % Save workspace
-s = strcat('../WS/',patient,'_WS_temp.mat');
+if nargin == 3
+    s = strcat('../WS/',patids,patient,'_WS_temp.mat');
+else
+    s = strcat('../WS/',patient,'_WS_temp.mat');
+end
 save(s,'data','-append');
 
 end

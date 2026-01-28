@@ -93,14 +93,15 @@ end
 
 min_peak_dist_samples = round(0.5 * average_refractory_first10 * fs);
 win_s_sec = 0.2; win_q_sec = 0.3;
-win_s = round(win_s_sec * fs); win_q = round(win_q_sec * fs);
+win_s = round(win_s_sec * fs); 
+win_q = round(win_q_sec * fs);
 th = 0.30 * max(ECG_recon);
 [~, locs] = findpeaks(ECG_recon, 'MinPeakDistance', min_peak_dist_samples, 'MinPeakHeight', th);
 
 % Gap filling
 TR_initial = Traw(locs); 
 RR = diff(TR_initial);
-RR_thresh   = 1.25 * average_refractory_first10;
+RR_thresh   = 2 * average_refractory_first10;
 baseline_RR = average_refractory_first10;
 
 % Prepare storage for new interpolated peaks
@@ -349,8 +350,6 @@ TS = TS_interp(valid_S);
 R = R(sortR);
 [TS, sortS] = sort(TS);
 S = S(sortS);
-
-
 
 
 %% 10. Peak Correction

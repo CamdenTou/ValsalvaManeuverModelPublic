@@ -13,8 +13,8 @@ prompt         = {'Type (1) for PC and (2) for MAC', ...
                   'Fontsize (PC: 12, Mac: 16)',...
                   'Markersize (PC: 10, Mac: 14)',...
                   'Linewidth (PC: 2, Mac: 3)'};
-dlgtitle       = 'Select Figure Parameters'; 
-definput       = {'2','16','14','3'};
+dlgtitle       =  'Select Figure Parameters'; 
+definput       = {'1','12','10','2'};
 dims           = [1 65];
 answer         = inputdlg(prompt,dlgtitle,dims,definput);
 
@@ -45,10 +45,10 @@ if PCcomp == 1
     figSize = [left bottom width height];
     posCB = [figSize(1)+figSize(3)*0.8,10,figSize(3)*0.25,figSize(4)*0.05];
 else
-    figSize = 0.75.*screenSize;
+    figSize = 0.6.*screenSize; % was 0.75
     figSize(1:2) = 0.12*screenSize(3:4);
     figSize(4) = figSize(4)*0.90;
-    posCB = [25+figSize(3)*0.7,10,figSize(3)*0.25,figSize(4)*0.05];
+    posCB = [25+figSize(3),10,figSize(3)*0.25,figSize(4)*0.05];
 end
   
 plotmarkers.screenSize = screenSize;
